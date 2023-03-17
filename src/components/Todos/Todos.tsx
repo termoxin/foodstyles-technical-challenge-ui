@@ -1,5 +1,12 @@
 import React, { useState, useEffect } from "react";
-import { TextField, Checkbox, IconButton, Button } from "@mui/material";
+import {
+  TextField,
+  Checkbox,
+  IconButton,
+  Button,
+  CircularProgress,
+  LinearProgress,
+} from "@mui/material";
 import { MdClose } from "react-icons/md";
 import TodosService from "../../services/TodosService";
 import { TOKEN } from "../../utils/constants";
@@ -13,6 +20,7 @@ const Todos = () => {
   const [filter, setFilter] = useState(0);
   const [newTodo, setNewTodo] = useState("");
   const [triggerLoad, setTriggerLoad] = useState(false);
+  const [isLoading, setLoading] = useState(false);
 
   const handleTodoChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     setNewTodo(event.target.value);
@@ -21,6 +29,7 @@ const Todos = () => {
   const handleSubmit = async (event: React.KeyboardEvent<HTMLInputElement>) => {
     if (event.key === "Enter") {
       const todoSaved = await TodosService.save(newTodo);
+
       if (todoSaved) {
         setNewTodo("");
         setTriggerLoad(!triggerLoad);
@@ -44,10 +53,14 @@ const Todos = () => {
 
   useEffect(() => {
     const getTodos = async () => {
+      setLoading(true);
       const todos = await TodosService.loadAll();
+
       if (todos) {
         setTodos(todos);
       }
+
+      setLoading(false);
     };
     getTodos();
   }, [triggerLoad]);
@@ -74,39 +87,44 @@ const Todos = () => {
           <img src={logo} alt="logo" />
           <div className="title">Todo List</div>
         </div>
-        <TextField
-          className="todo-input"
-          id="todo-input-id"
-          variant="standard"
-          label="Add a new todo"
-          type="text"
-          value={newTodo}
-          onChange={handleTodoChange}
-          onKeyDown={handleSubmit}
-        />
-        <div>
-          {filteredTodos
-            .sort((a, b) => (a.id > b.id ? 1 : -1))
-            .map((todo: any) => (
-              <div key={todo.id} className="todo-item">
-                <div className="todo-item-left-wrapper">
-                  <Checkbox
-                    checked={todo.status}
-                    onChange={() => handleUpdate(todo)}
-                  />
-                  <div>{todo.title}</div>
+
+        {!isLoading ? (
+          <div>
+            <TextField
+              className="todo-input"
+              id="todo-input-id"
+              variant="standard"
+              label="Add a new todo"
+              type="text"
+              value={newTodo}
+              onChange={handleTodoChange}
+              onKeyDown={handleSubmit}
+            />
+            {filteredTodos
+              .sort((a, b) => (a.id > b.id ? 1 : -1))
+              .map((todo: any) => (
+                <div key={todo.id} className="todo-item">
+                  <div className="todo-item-left-wrapper">
+                    <Checkbox
+                      checked={todo.status}
+                      onChange={() => handleUpdate(todo)}
+                    />
+                    <div>{todo.title}</div>
+                  </div>
+                  <IconButton
+                    color="default"
+                    aria-label="delete todo"
+                    component="label"
+                    onClick={() => handleDelete(todo)}
+                  >
+                    <MdClose />
+                  </IconButton>
                 </div>
-                <IconButton
-                  color="default"
-                  aria-label="delete todo"
-                  component="label"
-                  onClick={() => handleDelete(todo)}
-                >
-                  <MdClose />
-                </IconButton>
-              </div>
-            ))}
-        </div>
+              ))}
+          </div>
+        ) : (
+          <LinearProgress />
+        )}
       </div>
       <div className="todos-footer">
         <div className="todos-filter">
