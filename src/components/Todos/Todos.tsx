@@ -4,7 +4,6 @@ import {
   Checkbox,
   IconButton,
   Button,
-  CircularProgress,
   LinearProgress,
 } from "@mui/material";
 import { MdClose } from "react-icons/md";
